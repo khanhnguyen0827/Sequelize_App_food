@@ -15,8 +15,5 @@
     "url": "https://github.com/khanhnguyen0827/Sequelize_App_food/issues"
   },
   "homepage": "https://github.com/khanhnguyen0827/Sequelize_App_food#readme",
-  "description": "",
-  "dependencies": {
-    "express": "^5.1.0"
-  }
+  "description": ""
 }
