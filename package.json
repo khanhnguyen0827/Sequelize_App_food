@@ -2,10 +2,7 @@
   "name": "sequelize_app_food",
   "version": "1.0.0",
   "description": "Bài tập sequelize",
-    "main": "index.js",
-"type": "module", 
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
