@@ -1,7 +1,7 @@
 {
   "name": "sequelize_app_food",
   "version": "1.0.0",
-  "type": "module",
+  "type": "module", 
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -17,9 +17,14 @@
     "url": "https://github.com/khanhnguyen0827/Sequelize_App_food/issues"
   },
   "homepage": "https://github.com/khanhnguyen0827/Sequelize_App_food#readme",
-  "description": "",
+  "description": "Bài tập sequelize",
   "dependencies": {
+    "@prisma/client": "^6.8.2",
+    "dotenv": "^16.5.0", 
+    "express": "^5.1.0", 
     "mysql2": "^3.14.1",
-    "nodemon": "^3.1.10"
-  }
+    "nodemon": "^3.1.10",
+    "prisma": "^6.8.2" 
+  },
+  "keywords": []
 }

@@ -1,28 +1,36 @@
-import express from 'express';//importing express module (import thư viên express)   
-import mysql from 'mysql2/promise';   
-// This code sets up a simple Express server that listens on port 3000 and responds with "Hello World!" when the root URL is accessed.
+// server.js
+// Đây là file khởi điểm của ứng dụng Node.js, đóng vai trò là "View" trong mô hình MVC.
+// Nó chịu trách nhiệm cấu hình server, định tuyến các yêu cầu và khởi động ứng dụng.
+
+// 1. Import các thư viện cần thiết
+// 'express': Framework web cho Node.js, giúp xây dựng các API RESTful một cách dễ dàng.
+import express from 'express';
+import rootRouter from './src/router/root.router.js';
+// 'dotenv': Thư viện giúp tải các biến môi trường từ file .env vào process.env,
+// bảo mật thông tin nhạy cảm như chuỗi kết nối database.
+import { PORT } from './src/conmon/constant/app.constant.js';
+
+// 2. Tải biến môi trường
 
 
-const app = express();// creating an instance of express (tạo một phiên bản của express)    
-
-app.use(express.json());//Chuyển dạng json sang đối tượng js trên req.body
-
-const port = 3069;// setting the port to 3000 (thiết lập cổng là 3000)
 
 
 
-// Create the connection pool. The pool-specific settings are the defaults (Chúng ta tạo một pool kết nối. Các cài đặt cụ thể của pool là mặc định)
-const pool = mysql.createPool(uri ='mysql://root:123456@localhost:3306/qlsv?charset=utf8mb4&timezone=Z');
-// Create a route to handle GET requests to the root URL (Tạo một tuyến đường để xử lý các yêu cầu GET đến URL gốc)
+// 4. Khởi tạo ứng dụng Express
+const app = express();
+// Lấy cổng từ biến môi trường hoặc sử dụng cổng mặc định 8080
+const port = PORT || 8080;
 
+// 5. Cấu hình Middleware
+// Middleware 'express.json()' giúp Express có thể đọc và phân tích các yêu cầu
+// có body dưới dạng JSON (ví dụ: khi gửi dữ liệu từ client lên server).
+app.use(express.json());
+app.use(rootRouter); ;
 
-// Start the server and listen on the specified port (bắt đầu máy chủ và lắng nghe trên cổng đã chỉ định)   
+// 7. Khởi động Server
+// Lắng nghe các yêu cầu đến trên cổng đã cấu hình.
 app.listen(port, () => {
-  console.log(`Server started on port ${port}`);
+    console.log(`Server đang chạy trên http://localhost:${port}`);
+    console.log('Nhấn Ctrl+C để dừng server.');
 });
 
-
-//thư viện cài 
-// npm install express thư viện express cốt lõi của nodejs
-// npm install nodemon --save-dev thư viện nodemon giúp tự động khởi động lại server khi có thay đổi trong mã nguồn
-// npm install mysql2 --save thư viện mysql2 cốt lõi của nodejs
