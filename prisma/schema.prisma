@@ -1,0 +1,125 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(255)
+  email     String   @unique @db.VarChar(255)
+  password  String   @db.VarChar(255) // hashed password
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  likes    Like[]
+  ratings  Rating[]
+  orders   Order[]
+
+  @@map("Users") // Map to existing table name
+}
+
+model Restaurant {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  address     String?  @db.VarChar(255)
+  phone       String?  @db.VarChar(20)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  dishes   Dish[]
+  likes    Like[]
+  ratings  Rating[]
+  orders   Order[]
+
+  @@map("Restaurants")
+}
+
+model Dish {
+  id          Int      @id @default(autoincrement())
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurantId Int      @map("restaurant_id")
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  price       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  orderItems OrderItem[]
+
+  @@map("Dishes")
+}
+
+model Like {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int      @map("user_id")
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurantId Int      @map("restaurant_id")
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+
+  @@unique([userId, restaurantId]) // Ensures a user can only like a restaurant once
+  @@map("Likes")
+}
+
+model Rating {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int      @map("user_id")
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurantId Int      @map("restaurant_id")
+  rating      Decimal  @db.Decimal(2, 1) // Rating from 1.0 to 5.0
+  comment     String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  @@unique([userId, restaurantId]) // Ensures a user can only rate a restaurant once
+  @@map("Ratings")
+}
+
+model Order {
+  id          Int      @id @default(autoincrement())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      Int      @map("user_id")
+  restaurant  Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  restaurantId Int      @map("restaurant_id")
+  orderDate   DateTime @default(now()) @map("order_date") @db.Timestamp(0)
+  totalAmount Decimal  @db.Decimal(10, 2)
+  status      OrderStatus @default(pending)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamp(0)
+  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamp(0)
+
+  orderItems OrderItem[]
+
+  @@map("Orders")
+}
+
+model OrderItem {
+  id             Int      @id @default(autoincrement())
+  order          Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId        Int      @map("order_id")
+  dish           Dish     @relation(fields: [dishId], references: [id], onDelete: Cascade)
+  dishId         Int      @map("dish_id")
+  quantity       Int
+  priceAtOrder   Decimal  @map("price_at_order") @db.Decimal(10, 2)
+
+  @@map("OrderItems")
+}
+
+enum OrderStatus {
+  pending
+  completed
+  cancelled
+}
