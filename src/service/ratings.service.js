@@ -8,6 +8,8 @@ const ratingsService = {
       where: { userId_restaurantId: { userId: parseInt(userId), restaurantId: parseInt(restaurantId) } },
       update: { rating: parseFloat(rating), comment: comment || null },
       create: { userId: parseInt(userId), restaurantId: parseInt(restaurantId), rating: parseFloat(rating), comment: comment || null },
+    
+    
     });
   },
 
