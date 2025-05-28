@@ -162,3 +162,6 @@ INSERT INTO OrderItems (order_id, dish_id, quantity, price_at_order) VALUES
 (3, 5, 1, 30000.00), -- Đơn 3: Cafe Sữa Đá
 (3, 6, 1, 40000.00), -- Đơn 3: Trà Đào Cam Sả
 (4, 7, 1, 180000.00); -- Đơn 4: Tôm Nướng Muối Ớt 
+
+
+
