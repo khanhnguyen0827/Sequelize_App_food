@@ -1,0 +1,203 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Dishes {
+  id            Int          @id @default(autoincrement())
+  restaurant_id Int
+  name          String       @db.VarChar(255)
+  description   String?      @db.Text
+  price         Decimal      @db.Decimal(10, 2)
+  created_at    DateTime?    @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?    @default(now()) @db.Timestamp(0)
+  Restaurants   Restaurants  @relation(fields: [restaurant_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Dishes_ibfk_1")
+  OrderItems    OrderItems[]
+
+  @@index([restaurant_id], map: "restaurant_id")
+}
+
+model Likes {
+  id            Int         @id @default(autoincrement())
+  user_id       Int
+  restaurant_id Int
+  created_at    DateTime?   @default(now()) @db.Timestamp(0)
+  Users         Users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Likes_ibfk_1")
+  Restaurants   Restaurants @relation(fields: [restaurant_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Likes_ibfk_2")
+
+  @@unique([user_id, restaurant_id], map: "user_id")
+  @@index([restaurant_id], map: "restaurant_id")
+}
+
+model OrderItems {
+  id             Int     @id @default(autoincrement())
+  order_id       Int
+  dish_id        Int
+  quantity       Int
+  price_at_order Decimal @db.Decimal(10, 2)
+  Orders         Orders  @relation(fields: [order_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "OrderItems_ibfk_1")
+  Dishes         Dishes  @relation(fields: [dish_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "OrderItems_ibfk_2")
+
+  @@index([dish_id], map: "dish_id")
+  @@index([order_id], map: "order_id")
+}
+
+model Orders {
+  id            Int            @id @default(autoincrement())
+  user_id       Int
+  restaurant_id Int
+  order_date    DateTime?      @default(now()) @db.Timestamp(0)
+  total_amount  Decimal        @db.Decimal(10, 2)
+  status        Orders_status? @default(pending)
+  created_at    DateTime?      @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?      @default(now()) @db.Timestamp(0)
+  OrderItems    OrderItems[]
+  Users         Users          @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Orders_ibfk_1")
+  Restaurants   Restaurants    @relation(fields: [restaurant_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Orders_ibfk_2")
+
+  @@index([restaurant_id], map: "restaurant_id")
+  @@index([user_id], map: "user_id")
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model Ratings {
+  id            Int         @id @default(autoincrement())
+  user_id       Int
+  restaurant_id Int
+  rating        Decimal     @db.Decimal(2, 1)
+  comment       String?     @db.Text
+  created_at    DateTime?   @default(now()) @db.Timestamp(0)
+  updated_at    DateTime?   @default(now()) @db.Timestamp(0)
+  Users         Users       @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Ratings_ibfk_1")
+  Restaurants   Restaurants @relation(fields: [restaurant_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "Ratings_ibfk_2")
+
+  @@unique([user_id, restaurant_id], map: "user_id")
+  @@index([restaurant_id], map: "restaurant_id")
+}
+
+model Restaurants {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(255)
+  address     String?   @db.VarChar(255)
+  phone       String?   @db.VarChar(20)
+  description String?   @db.Text
+  created_at  DateTime? @default(now()) @db.Timestamp(0)
+  updated_at  DateTime? @default(now()) @db.Timestamp(0)
+  Dishes      Dishes[]
+  Likes       Likes[]
+  Orders      Orders[]
+  Ratings     Ratings[]
+}
+
+model Users {
+  id         Int       @id @default(autoincrement())
+  username   String    @unique(map: "username") @db.VarChar(255)
+  email      String    @unique(map: "email") @db.VarChar(255)
+  password   String    @db.VarChar(255)
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @default(now()) @db.Timestamp(0)
+  Likes      Likes[]
+  Orders     Orders[]
+  Ratings    Ratings[]
+}
+
+model food {
+  food_id                 Int                       @id @default(autoincrement())
+  food_name               String                    @db.VarChar(255)
+  image                   String?                   @db.VarChar(255)
+  price                   Float                     @db.Float
+  description             String?                   @db.VarChar(255)
+  type_id                 Int?
+  food_type               food_type?                @relation(fields: [type_id], references: [type_id], onDelete: NoAction, onUpdate: NoAction, map: "food_ibfk_1")
+  food_restaurant_mapping food_restaurant_mapping[]
+  order                   order[]
+
+  @@index([type_id], map: "type_id")
+}
+
+model food_restaurant_mapping {
+  id         Int         @id @default(autoincrement())
+  food_id    Int?
+  res_id     Int?
+  food       food?       @relation(fields: [food_id], references: [food_id], onDelete: NoAction, onUpdate: NoAction, map: "food_restaurant_mapping_ibfk_1")
+  restaurant restaurant? @relation(fields: [res_id], references: [res_id], onDelete: NoAction, onUpdate: NoAction, map: "food_restaurant_mapping_ibfk_2")
+
+  @@index([food_id], map: "food_id")
+  @@index([res_id], map: "res_id")
+}
+
+model food_type {
+  type_id   Int    @id @default(autoincrement())
+  type_name String @db.VarChar(255)
+  food      food[]
+}
+
+model like_res {
+  like_id    Int         @id @default(autoincrement())
+  user_id    Int?
+  res_id     Int?
+  date_like  DateTime?   @db.DateTime(0)
+  user       user?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "like_res_ibfk_1")
+  restaurant restaurant? @relation(fields: [res_id], references: [res_id], onDelete: NoAction, onUpdate: NoAction, map: "like_res_ibfk_2")
+
+  @@index([res_id], map: "res_id")
+  @@index([user_id], map: "user_id")
+}
+
+model order {
+  order_id   Int       @id @default(autoincrement())
+  user_id    Int?
+  food_id    Int?
+  amount     Int?
+  code       String?   @db.VarChar(255)
+  arr_sub_id String?   @db.VarChar(255)
+  date_order DateTime? @db.DateTime(0)
+  user       user?     @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "order_ibfk_1")
+  food       food?     @relation(fields: [food_id], references: [food_id], onDelete: NoAction, onUpdate: NoAction, map: "order_ibfk_2")
+
+  @@index([food_id], map: "food_id")
+  @@index([user_id], map: "user_id")
+}
+
+model rate_res {
+  rate_id    Int         @id @default(autoincrement())
+  user_id    Int?
+  res_id     Int?
+  amount     Int?
+  date_rate  DateTime?   @db.DateTime(0)
+  user       user?       @relation(fields: [user_id], references: [user_id], onDelete: NoAction, onUpdate: NoAction, map: "rate_res_ibfk_1")
+  restaurant restaurant? @relation(fields: [res_id], references: [res_id], onDelete: NoAction, onUpdate: NoAction, map: "rate_res_ibfk_2")
+
+  @@index([res_id], map: "res_id")
+  @@index([user_id], map: "user_id")
+}
+
+model restaurant {
+  res_id                  Int                       @id @default(autoincrement())
+  res_name                String                    @db.VarChar(255)
+  image                   String?                   @db.VarChar(255)
+  description             String?                   @db.VarChar(255)
+  food_restaurant_mapping food_restaurant_mapping[]
+  like_res                like_res[]
+  rate_res                rate_res[]
+}
+
+model user {
+  user_id   Int        @id @default(autoincrement())
+  full_name String     @db.VarChar(255)
+  email     String     @unique(map: "email") @db.VarChar(255)
+  password  String     @db.VarChar(255)
+  like_res  like_res[]
+  order     order[]
+  rate_res  rate_res[]
+}
+
+enum Orders_status {
+  pending
+  completed
+  cancelled
+}
