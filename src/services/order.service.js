@@ -5,8 +5,8 @@ const orderService = {
    
 // Thêm một order mới
     // Thêm một order mới
-    addOrder: async () => {
-        const {userId, foodItems} = req.body;
+    // Thêm một order mới
+    addOrder: async (userId, foodItems) => {
         try {
             // Tính tổng số tiền
             let totalAmount = 0;
@@ -18,16 +18,14 @@ const orderService = {
             });
 
             if (foodsData.length !== foodIds.length) {
-              
-                 throw new BadrequestException(`Some food items not found.`);
+                throw new Error("Some food items not found.");
             }
 
             const orderDetailsData = [];
             for (const item of foodItems) {
                 const food = foodsData.find(f => f.food_id === parseInt(item.food_id));
                 if (!food) {
-                    
-                     throw new BadrequestException(`Food with ID ${item.food_id} not found.`);
+                    throw new Error(`Food with ID ${item.food_id} not found.`);
                 }
                 const itemPrice = parseFloat(food.price);
                 totalAmount += itemPrice * item.quantity;
@@ -57,15 +55,13 @@ const orderService = {
             });
             return newOrder;
         } catch (error) {
-           
-             throw new BadrequestException(`Could not add order.`);
+            console.error("Error adding order:", error);
+            throw new Error("Could not add order.");
         }
     },
 
     // Lấy danh sách order theo user_id (ví dụ)
-    getOrdersByUserId: async (req) => {
-
-        const userId = req.params.id;
+    getOrdersByUserId: async (userId) => {
         try {
             const orders = await prisma.orders.findMany({
                 where: { user_id: parseInt(userId) },
@@ -79,8 +75,8 @@ const orderService = {
             });
             return orders;
         } catch (error) {
-          
-             throw new BadrequestException(`Could not fetch orders by user.`);
+            console.error("Error fetching orders by user:", error);
+            throw new Error("Could not fetch orders by user.");
         }
     }
 };
