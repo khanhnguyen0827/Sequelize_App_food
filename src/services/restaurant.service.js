@@ -5,6 +5,9 @@ import prisma from "../common/prisma/init.prisma";
 const restaurantService = {
     likeRestaurant: async (req) => {
         const { userId, resId } = req.body;
+        if (!userId || !resId) {
+            return res.status(400).send('Missing userId or resId');
+        }
         try {
             const newLike = await prisma.likes.create({
                 data: {
@@ -133,6 +136,65 @@ const restaurantService = {
         }
     },
 
+    // Thêm đánh giá nhà hàng
+    addRestaurantRating: async (req) => {
+        const { userId, resId, amount } = req.body;
+        try {
+            const newRate = await prisma.rates.upsert({
+                where: {
+                    user_id_res_id: {
+                        user_id: parseInt(userId),
+                        res_id: parseInt(resId),
+                    },
+                },
+                update: {
+                    amount: parseInt(amount),
+                    date_rate: new Date(), // Cập nhật thời gian đánh giá
+                },
+                create: {
+                    user_id: parseInt(userId),
+                    res_id: parseInt(resId),
+                    amount: parseInt(amount),
+                },
+            });
+            return newRate;
+        } catch (error) {
+           
+            throw new BadrequestException(`Could not add/update restaurant rating.`);
+            
+        }
+    },
+
+    // Lấy danh sách đánh giá theo user_id
+    getRatingsByUserId: async (req) => {
+        const userId = req.params.id;
+        try {
+            const ratings = await prisma.rates.findMany({
+                where: { user_id: parseInt(userId) },
+                include: { restaurants: true },
+            });
+            return ratings;
+        } catch (error) {
+         
+            throw new BadrequestException(`Could not fetch ratings by user.`);
+        }
+    },
+
+    // Lấy danh sách đánh giá theo res_id
+    getRatingsByRestaurantId: async (req) => {
+        const resId = req.params.id;
+        try {
+            const ratings = await prisma.rates.findMany({
+                where: { res_id: parseInt(resId) },
+                include: { users: true },
+            });
+            return ratings;
+        } catch (error) {
+            
+
+            throw new BadrequestException(`Could not fetch ratings by restaurant.`);
+        }
+    },
 
 
 };

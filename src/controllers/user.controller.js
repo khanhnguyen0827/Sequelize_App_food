@@ -1,4 +1,4 @@
-import usersService from "../services/users.service.js";
+import usersService from "../services/user.service.js";
 import { responseSeccess } from "../common/helpers/response.helper.js"; 
 
 
@@ -23,11 +23,3 @@ export default usersController;
 
 
 
-async (req, res) => {
-    try {
-        const users = await prisma.users.findMany();
-        res.status(200).json(users);
-    } catch (error) {
-        res.status(500).json({ message: 'Lỗi khi lấy danh sách người dùng', error: error.message });
-    }
-}

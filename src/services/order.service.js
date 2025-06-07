@@ -4,8 +4,9 @@ import { BadrequestException } from "../common/helpers/exception.helper.js";
 const orderService = {
    
 // Thêm một order mới
-    addOrder: async (req) => {
-        const{ userId, foodItems} = req.body;
+    // Thêm một order mới
+    addOrder: async () => {
+        const {userId, foodItems} = req.body;
         try {
             // Tính tổng số tiền
             let totalAmount = 0;
@@ -17,16 +18,16 @@ const orderService = {
             });
 
             if (foodsData.length !== foodIds.length) {
-                throw new BadrequestException(`Some food items not found.`);
-             
+              
+                 throw new BadrequestException(`Some food items not found.`);
             }
 
             const orderDetailsData = [];
             for (const item of foodItems) {
                 const food = foodsData.find(f => f.food_id === parseInt(item.food_id));
                 if (!food) {
-                   
-                    throw new BadrequestException(`Food with ID ${item.food_id} not found.`);
+                    
+                     throw new BadrequestException(`Food with ID ${item.food_id} not found.`);
                 }
                 const itemPrice = parseFloat(food.price);
                 totalAmount += itemPrice * item.quantity;
@@ -56,13 +57,15 @@ const orderService = {
             });
             return newOrder;
         } catch (error) {
-            console.error("Error adding order:", error);
-            throw new Error("Could not add order.");
+           
+             throw new BadrequestException(`Could not add order.`);
         }
     },
 
     // Lấy danh sách order theo user_id (ví dụ)
-    getOrdersByUserId: async (userId) => {
+    getOrdersByUserId: async (req) => {
+
+        const userId = req.params.id;
         try {
             const orders = await prisma.orders.findMany({
                 where: { user_id: parseInt(userId) },
@@ -76,8 +79,8 @@ const orderService = {
             });
             return orders;
         } catch (error) {
-            console.error("Error fetching orders by user:", error);
-            throw new Error("Could not fetch orders by user.");
+          
+             throw new BadrequestException(`Could not fetch orders by user.`);
         }
     }
 };
@@ -85,5 +88,5 @@ const orderService = {
 
 
 
-export default likeService
+export default orderService;
 
