@@ -1,11 +1,10 @@
 
 import express from "express";
-import restaurantsController from "../controllers/restaurant.controller";
+
+import restaurantController from "../controllers/restaurant.controller.js";
 
 const restaurantsRouter = express.Router();
 
-// Lấy danh sách tất cả người dùng
-restaurantsRouter.get('/', restaurantsController.getAll);
 
 // Xử lý like/unlike nhà hàng
 restaurantsRouter.post('/like', restaurantController.likeRestaurant);

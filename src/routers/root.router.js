@@ -1,6 +1,7 @@
 import express from "express";
 import usersRouter from "./user.router";
 import restaurantsRouter from "./restaurant.router";
+import orderRouter from "./order.router";
 
 const rootRouter = express.Router();
 
@@ -9,7 +10,7 @@ rootRouter.use('/users', usersRouter);
 //api lấy danh sách nhà hàng
 rootRouter.use('/restaurants', restaurantsRouter);
 
-rootRouter.use('/orders', ordersRouter);
+rootRouter.use('/orders', orderRouter);
 
 
 /*

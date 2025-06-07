@@ -1,7 +1,12 @@
 import express from "express";
+import orderController from "../controllers/order.controller";  
+
+const orderRouter = express.Router();
 
 // User đặt món
-router.post('/add', orderController.addOrder);
+orderRouter.post('/add', orderController.addOrder);
 
 // Lấy danh sách order theo user ID (ví dụ)
-router.get('/user/:userId', orderController.getOrdersByUserId);
+orderRouter.get('/user/:userId', orderController.getOrdersByUserId);
+
+export default orderRouter;
