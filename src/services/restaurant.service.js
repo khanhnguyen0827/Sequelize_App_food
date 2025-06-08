@@ -259,9 +259,6 @@ const restaurantService = {// Like nhà hàng // ===============================
 
   /**
    * Lấy danh sách các lượt đánh giá của một nhà hàng.
-   * @param {number} resId - ID nhà hàng.
-   * @returns {Promise<Array<object>>} - Mảng các đối tượng đánh giá.
-   * @throws {BadrequestException} Nếu nhà hàng không tồn tại.
    */
   getRatingsByRestaurantId: async (req) => {
     const resId = parseInt(req.params.resId);

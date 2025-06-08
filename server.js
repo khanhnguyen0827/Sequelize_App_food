@@ -6,17 +6,11 @@ import { handleErr } from "./src/common/helpers/handle-err.helper";
 // Create a server
 const app = expess();
 // Middlewares
-
 app.use(expess.json());
-
 // Routers
 app.use('/', rootRouter);
-
 // Middleware bắt lỗi
-
 app.use(    handleErr)
-
-
 
 // Start server
 app.listen(PORT, () => {

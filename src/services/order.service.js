@@ -4,10 +4,6 @@ import { BadrequestException } from "../common/helpers/exception.helper.js";
 const orderService = {
 /**
    * Thêm một đơn hàng mới.
-   * @param {number} userId - ID của người dùng đặt hàng.
-   * @param {Array<object>} foodItems - Mảng các món ăn trong đơn hàng, mỗi object { foodId: number, quantity: number }.
-   * @returns {Promise<object>} - Đối tượng đơn hàng vừa tạo cùng với chi tiết.
-   * @throws {BadrequestException} Nếu người dùng không tồn tại, món ăn không tồn tại hoặc số lượng không hợp lệ.
    */
   addOrder: async (req) => {
     let { userId, foodItems } = req.body;
@@ -120,9 +116,6 @@ const orderService = {
 
   /**
    * Lấy danh sách các đơn hàng của một người dùng.
-   * @param {number} userId - ID người dùng.
-   * @returns {Promise<Array<object>>} - Mảng các đối tượng đơn hàng.
-   * @throws {BadrequestException} Nếu người dùng không tồn tại.
    */
   getOrdersByUserId: async (req) => {
 

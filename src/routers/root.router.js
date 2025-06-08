@@ -5,20 +5,12 @@ import orderRouter from "./order.router";
 
 const rootRouter = express.Router();
 
-//api lấy danh sách người dùng
+//api người dùng
 rootRouter.use('/users', usersRouter);
-//api lấy danh sách nhà hàng
+//api nhà hàng
 rootRouter.use('/restaurants', restaurantsRouter);
-
+//api đơn hàng
 rootRouter.use('/orders', orderRouter);
-
-
-/*
- * ===============================================
- * API XỬ LÝ LIKE NHÀ HÀNG
- * ===============================================
- */
-
 
 
 export default rootRouter;

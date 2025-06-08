@@ -3,6 +3,8 @@ import prisma from "../common/prisma/init.prisma.js";
 import { BadrequestException } from "../common/helpers/exception.helper.js";
 
 const usersService = {
+
+  // Lấy danh sách người dùng
     getAllUsers: async () => {
     try {
       const users = await prisma.users.findMany();
@@ -16,6 +18,7 @@ const usersService = {
     }
   },
 
+  // Lấy thống tin người dùng
   getUserById: async (req) => {
     const userId = parseInt(req.params.user_id);
     // Kiem tra tham so
