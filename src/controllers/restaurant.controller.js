@@ -1,4 +1,4 @@
-import restaurantsService from "../services/restaurant.service.js";
+import restaurantService from "../services/restaurant.service.js";
 import { responseSeccess } from "../common/helpers/response.helper.js";
 
 const restaurantsController = {
@@ -12,32 +12,9 @@ const restaurantsController = {
    * @param {object} res - Đối tượng Response từ Express.
    */
   likeRestaurant: async (req, res) => {
-    try {
-      const { userId, resId } = req.body; // Lấy userId và resId từ body
-
-      // Kiểm tra dữ liệu đầu vào
-      if (!userId || !resId) {
-        throw new BadRequestException("Thiếu user ID hoặc restaurant ID.");
-      }
-      const parsedUserId = parseInt(userId);
-      const parsedResId = parseInt(resId);
-
-      if (isNaN(parsedUserId) || isNaN(parsedResId)) {
-        throw new BadRequestException("ID người dùng hoặc nhà hàng không hợp lệ.");
-      }
-
-      const newLike = await restaurantService.likeRestaurant(parsedUserId, parsedResId);
-      res.status(201).json({
-        message: "Like nhà hàng thành công",
-        data: newLike,
-      });
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        return res.status(error.statusCode).json({ message: error.message });
-      }
-      console.error("Lỗi trong RestaurantController.likeRestaurant:", error);
-      res.status(500).json({ message: "Lỗi máy chủ nội bộ khi like nhà hàng." });
-    }
+      const newLike = await restaurantService.likeRestaurant(req.body);
+        const resdata = responseSeccess(newLike, "Like nhà hàng thành công");
+        res.status(resdata.statusCode).json(resdata);  
   },
 
   /**
