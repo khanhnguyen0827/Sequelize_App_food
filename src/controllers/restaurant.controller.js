@@ -12,7 +12,7 @@ const restaurantsController = {
    * @param {object} res - Đối tượng Response từ Express.
    */
   likeRestaurant: async (req, res) => {
-      const newLike = await restaurantService.likeRestaurant(req.body);
+      const newLike = await restaurantService.likeRestaurant(req);
         const resdata = responseSeccess(newLike, "Like nhà hàng thành công");
         res.status(resdata.statusCode).json(resdata);  
   },
@@ -23,31 +23,12 @@ const restaurantsController = {
    * @param {object} res - Đối tượng Response từ Express.
    */
   unlikeRestaurant: async (req, res) => {
-    try {
-      const { userId, resId } = req.body;
-
-      if (!userId || !resId) {
-        throw new BadRequestException("Thiếu user ID hoặc restaurant ID.");
-      }
-      const parsedUserId = parseInt(userId);
-      const parsedResId = parseInt(resId);
-
-      if (isNaN(parsedUserId) || isNaN(parsedResId)) {
-        throw new BadRequestException("ID người dùng hoặc nhà hàng không hợp lệ.");
-      }
-
-      const deletedLike = await restaurantService.unlikeRestaurant(parsedUserId, parsedResId);
-      res.status(200).json({
-        message: "Unlike nhà hàng thành công",
-        data: deletedLike,
-      });
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        return res.status(error.statusCode).json({ message: error.message });
-      }
-      console.error("Lỗi trong RestaurantController.unlikeRestaurant:", error);
-      res.status(500).json({ message: "Lỗi máy chủ nội bộ khi unlike nhà hàng." });
-    }
+    
+      const deletedLike = await restaurantService.unlikeRestaurant(req);
+       const resdata = responseSeccess(deletedLike, "Unlike nhà hàng thành công");
+        res.status(resdata.statusCode).json(resdata);  
+     
+    
   },
 
   /**

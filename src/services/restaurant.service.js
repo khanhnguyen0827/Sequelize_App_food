@@ -8,13 +8,16 @@ const restaurantService = {// Like nhà hàng // ===============================
   likeRestaurant: async (req) => {
 
     const { userId, resId } = req.body; // Lấy userId và resId từ body
+
+    const parsedUserId = parseInt(userId);
+    const parsedResId = parseInt(resId);
+
      // Kiểm tra dữ liệu đầu vào
       if (!userId || !resId) {
         throw new BadrequestException("Thiếu user ID hoặc restaurant ID.");
         
       }
-      const parsedUserId = parseInt(userId);
-      const parsedResId = parseInt(resId);
+      
 
       if (isNaN(parsedUserId) || isNaN(parsedResId)) {
         throw new BadrequestException("ID người dùng hoặc nhà hàng không hợp lệ.");
@@ -67,7 +70,20 @@ const restaurantService = {// Like nhà hàng // ===============================
    * @returns {Promise<object>} - Đối tượng like vừa xóa.
    * @throws {BadrequestException} Nếu lượt like không tồn tại.
    */
-  unlikeRestaurant: async (userId, resId) => {
+  unlikeRestaurant: async (req) => {
+    const { userId, resId } = req.body;
+
+    userId = parseInt(userId);
+    resId = parseInt(resId);
+
+      if (!userId || !resId) {
+        throw new BadRequestException("Thiếu user ID hoặc restaurant ID.");
+      }
+
+      if (isNaN(parsedUserId) || isNaN(parsedResId)) {
+        throw new BadRequestException("ID người dùng hoặc nhà hàng không hợp lệ.");
+      }
+
     // Kiểm tra xem lượt like có tồn tại không
     const existingLike = await prisma.likes.findUnique({
       where: {
