@@ -3,11 +3,31 @@ import prisma from "../common/prisma/init.prisma.js";
 import { BadrequestException } from "../common/helpers/exception.helper.js";
 
 const usersService = {
-    getAll: async(req) => {
-        
-        const users = await prisma.users.findMany();
-        return users;
-    },
+    getAllUsers: async () => {
+    try {
+      const users = await prisma.users.findMany();
+      return users;
+    } catch (error) {
+      console.error("Lỗi trong UserService.getAllUsers:", error);
+      throw new BadrequestException(`Không thể lấy danh sách người dùng.`);
+    }
+  },
+
+  getUserById: async (userId) => {
+    try {
+      const user = await prisma.users.findUnique({
+        where: {
+          user_id: userId,
+        },
+      });
+      return user;
+    } catch (error) {
+      console.error("Lỗi trong UserService.getUserById:", error);
+      throw new BadrequestException(`Không thể lấy thông tin người dùng.`);
+    }
+  },
+
+    
     getUserById: async(req) => {
         const userId = req.params.id;
         try {
