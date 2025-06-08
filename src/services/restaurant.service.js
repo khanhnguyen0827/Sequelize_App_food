@@ -2,131 +2,265 @@
 import prisma from "../common/prisma/init.prisma";
 
 
-const restaurantService = {// Like nhà hàng
-    likeRestaurant: async (userId, resId) => {
-        try {
-            const newLike = await prisma.likes.create({
-                data: {
-                    user_id: parseInt(userId),
-                    res_id: parseInt(resId),
-                },
-            });
-            return newLike;
-        } catch (error) {
-            // Xử lý trường hợp đã like trước đó (unique constraint violation)
-            if (error.code === 'P2002') {
-                throw new Error("User has already liked this restaurant.");
-            }
-            console.error("Error liking restaurant:", error);
-            throw new Error("Could not like restaurant.");
-        }
-    },
+const restaurantService = {// Like nhà hàng // =========================================================
+  // Xử lý Like/Unlike
+  // =========================================================
 
-    // Unlike nhà hàng
-    unlikeRestaurant: async (userId, resId) => {
-        try {
-            const deletedLike = await prisma.likes.delete({
-                where: {
-                    user_id_res_id: { // Sử dụng khóa chính tổ hợp
-                        user_id: parseInt(userId),
-                        res_id: parseInt(resId),
-                    },
-                },
-            });
-            return deletedLike;
-        } catch (error) {
-            if (error.code === 'P2025') { // NotFoundError: Record to delete does not exist.
-                throw new Error("Like not found for this user and restaurant.");
-            }
-            console.error("Error unliking restaurant:", error);
-            throw new Error("Could not unlike restaurant.");
-        }
-    },
+  /**
+   * Thêm một lượt like cho nhà hàng.
+   * @param {number} userId - ID người dùng.
+   * @param {number} resId - ID nhà hàng.
+   * @returns {Promise<object>} - Đối tượng like vừa tạo.
+   * @throws {BadRequestException} Nếu người dùng hoặc nhà hàng không tồn tại, hoặc đã like.
+   */
+  likeRestaurant: async (userId, resId) => {
+    // Kiểm tra sự tồn tại của người dùng và nhà hàng
+    const user = await prisma.users.findUnique({ where: { user_id: userId } });
+    const restaurant = await prisma.restaurants.findUnique({ where: { res_id: resId } });
 
-    // Lấy danh sách like theo user_id
-    getLikesByUserId: async (userId) => {
-        try {
-            const likes = await prisma.likes.findMany({
-                where: { user_id: parseInt(userId) },
-                include: { restaurants: true }, // Bao gồm thông tin nhà hàng
-            });
-            return likes;
-        } catch (error) {
-            console.error("Error fetching likes by user:", error);
-            throw new Error("Could not fetch likes by user.");
-        }
-    },
+    if (!user) {
+      throw new BadRequestException("Người dùng không tồn tại.");
+    }
+    if (!restaurant) {
+      throw new BadRequestException("Nhà hàng không tồn tại.");
+    }
 
-    // Lấy danh sách like theo res_id
-    getLikesByRestaurantId: async (resId) => {
-        try {
-            const likes = await prisma.likes.findMany({
-                where: { res_id: parseInt(resId) },
-                include: { users: true }, // Bao gồm thông tin người dùng
-            });
-            return likes;
-        } catch (error) {
-            console.error("Error fetching likes by restaurant:", error);
-            throw new Error("Could not fetch likes by restaurant.");
-        }
-    },
+    // Kiểm tra xem đã like trước đó chưa
+    const existingLike = await prisma.likes.findUnique({
+      where: {
+        user_id_res_id: {
+          user_id: userId,
+          res_id: resId,
+        },
+      },
+    });
 
-    // Thêm đánh giá nhà hàng
-    addRestaurantRating: async (userId, resId, amount) => {
-        try {
-            const newRate = await prisma.rates.upsert({
-                where: {
-                    user_id_res_id: {
-                        user_id: parseInt(userId),
-                        res_id: parseInt(resId),
-                    },
-                },
-                update: {
-                    amount: parseInt(amount),
-                    date_rate: new Date(), // Cập nhật thời gian đánh giá
-                },
-                create: {
-                    user_id: parseInt(userId),
-                    res_id: parseInt(resId),
-                    amount: parseInt(amount),
-                },
-            });
-            return newRate;
-        } catch (error) {
-            console.error("Error adding/updating restaurant rating:", error);
-            throw new Error("Could not add/update restaurant rating.");
-        }
-    },
+    if (existingLike) {
+      throw new BadRequestException("Người dùng đã like nhà hàng này rồi.");
+    }
 
-    // Lấy danh sách đánh giá theo user_id
-    getRatingsByUserId: async (userId) => {
-        try {
-            const ratings = await prisma.rates.findMany({
-                where: { user_id: parseInt(userId) },
-                include: { restaurants: true },
-            });
-            return ratings;
-        } catch (error) {
-            console.error("Error fetching ratings by user:", error);
-            throw new Error("Could not fetch ratings by user.");
-        }
-    },
+    try {
+      const newLike = await prisma.likes.create({
+        data: {
+          user_id: userId,
+          res_id: resId,
+          date_like: new Date(),
+        },
+      });
+      return newLike;
+    } catch (error) {
+      console.error("Lỗi trong RestaurantService.likeRestaurant:", error);
+      // Có thể là lỗi DB khác ngoài ràng buộc unique đã kiểm tra
+      throw new Error("Không thể thêm lượt like.");
+    }
+  },
 
-    // Lấy danh sách đánh giá theo res_id
-    getRatingsByRestaurantId: async (resId) => {
-        try {
-            const ratings = await prisma.rates.findMany({
-                where: { res_id: parseInt(resId) },
-                include: { users: true },
-            });
-            return ratings;
-        } catch (error) {
-            console.error("Error fetching ratings by restaurant:", error);
-            throw new Error("Could not fetch ratings by restaurant.");
-        }
-    },
+  /**
+   * Xóa một lượt like của nhà hàng.
+   * @param {number} userId - ID người dùng.
+   * @param {number} resId - ID nhà hàng.
+   * @returns {Promise<object>} - Đối tượng like vừa xóa.
+   * @throws {BadRequestException} Nếu lượt like không tồn tại.
+   */
+  unlikeRestaurant: async (userId, resId) => {
+    // Kiểm tra xem lượt like có tồn tại không
+    const existingLike = await prisma.likes.findUnique({
+      where: {
+        user_id_res_id: {
+          user_id: userId,
+          res_id: resId,
+        },
+      },
+    });
 
+    if (!existingLike) {
+      throw new BadRequestException("Người dùng chưa từng like nhà hàng này.");
+    }
 
+    try {
+      const deletedLike = await prisma.likes.delete({
+        where: {
+          user_id_res_id: {
+            user_id: userId,
+            res_id: resId,
+          },
+        },
+      });
+      return deletedLike;
+    } catch (error) {
+      console.error("Lỗi trong RestaurantService.unlikeRestaurant:", error);
+      throw new Error("Không thể xóa lượt like.");
+    }
+  },
+
+  /**
+   * Lấy danh sách các lượt like của một người dùng.
+   * @param {number} userId - ID người dùng.
+   * @returns {Promise<Array<object>>} - Mảng các đối tượng like.
+   * @throws {BadRequestException} Nếu người dùng không tồn tại.
+   */
+  getLikesByUserId: async (userId) => {
+    const user = await prisma.users.findUnique({ where: { user_id: userId } });
+    if (!user) {
+      throw new BadRequestException("Người dùng không tồn tại.");
+    }
+
+    try {
+      const likes = await prisma.likes.findMany({
+        where: { user_id: userId },
+        include: {
+          restaurants: {
+            select: { res_id: true, res_name: true, image: true, description: true } // Chọn các trường cần thiết của nhà hàng
+          }
+        },
+      });
+      return likes;
+    } catch (error) {
+      console.error("Lỗi trong RestaurantService.getLikesByUserId:", error);
+      throw new Error("Không thể lấy danh sách like của người dùng.");
+    }
+  },
+
+  /**
+   * Lấy danh sách các lượt like của một nhà hàng.
+   * @param {number} resId - ID nhà hàng.
+   * @returns {Promise<Array<object>>} - Mảng các đối tượng like.
+   * @throws {BadRequestException} Nếu nhà hàng không tồn tại.
+   */
+  getLikesByRestaurantId: async (resId) => {
+    const restaurant = await prisma.restaurants.findUnique({ where: { res_id: resId } });
+    if (!restaurant) {
+      throw new BadRequestException("Nhà hàng không tồn tại.");
+    }
+
+    try {
+      const likes = await prisma.likes.findMany({
+        where: { res_id: resId },
+        include: {
+          users: {
+            select: { user_id: true, full_name: true, email: true } // Chọn các trường cần thiết của người dùng
+          }
+        },
+      });
+      return likes;
+    } catch (error) {
+      console.error("Lỗi trong RestaurantService.getLikesByRestaurantId:", error);
+      throw new Error("Không thể lấy danh sách like của nhà hàng.");
+    }
+  },
+
+  // =========================================================
+  // Xử lý Đánh giá
+  // =========================================================
+
+  /**
+   * Thêm hoặc cập nhật một đánh giá cho nhà hàng.
+   * @param {number} userId - ID người dùng.
+   * @param {number} resId - ID nhà hàng.
+   * @param {number} amount - Điểm đánh giá (ví dụ: 1-5).
+   * @returns {Promise<object>} - Đối tượng đánh giá vừa tạo/cập nhật.
+   * @throws {BadRequestException} Nếu người dùng/nhà hàng không tồn tại, hoặc điểm đánh giá không hợp lệ.
+   */
+  addRestaurantRating: async (userId, resId, amount) => {
+    // Kiểm tra sự tồn tại của người dùng và nhà hàng
+    const user = await prisma.users.findUnique({ where: { user_id: userId } });
+    const restaurant = await prisma.restaurants.findUnique({ where: { res_id: resId } });
+
+    if (!user) {
+      throw new BadRequestException("Người dùng không tồn tại.");
+    }
+    if (!restaurant) {
+      throw new BadRequestException("Nhà hàng không tồn tại.");
+    }
+
+    // Kiểm tra điểm đánh giá hợp lệ
+    if (amount < 1 || amount > 5) { // Giả sử điểm đánh giá từ 1 đến 5
+      throw new BadRequestException("Điểm đánh giá phải từ 1 đến 5.");
+    }
+
+    try {
+      // Upsert: Nếu tồn tại thì update, không thì create
+      const rating = await prisma.ratings.upsert({
+        where: {
+          user_id_res_id: {
+            user_id: userId,
+            res_id: resId,
+          },
+        },
+        update: {
+          amount: amount,
+          date_rate: new Date(),
+        },
+        create: {
+          user_id: userId,
+          res_id: resId,
+          amount: amount,
+          date_rate: new Date(),
+        },
+      });
+      return rating;
+    } catch (error) {
+      console.error("Lỗi trong RestaurantService.addRestaurantRating:", error);
+      throw new Error("Không thể thêm hoặc cập nhật đánh giá.");
+    }
+  },
+
+  /**
+   * Lấy danh sách các lượt đánh giá của một người dùng.
+   * @param {number} userId - ID người dùng.
+   * @returns {Promise<Array<object>>} - Mảng các đối tượng đánh giá.
+   * @throws {BadRequestException} Nếu người dùng không tồn tại.
+   */
+  getRatingsByUserId: async (userId) => {
+    const user = await prisma.users.findUnique({ where: { user_id: userId } });
+    if (!user) {
+      throw new BadRequestException("Người dùng không tồn tại.");
+    }
+
+    try {
+      const ratings = await prisma.ratings.findMany({
+        where: { user_id: userId },
+        include: {
+          restaurants: {
+            select: { res_id: true, res_name: true, image: true, description: true }
+          }
+        },
+      });
+      return ratings;
+    } catch (error) {
+      console.error("Lỗi trong RestaurantService.getRatingsByUserId:", error);
+      throw new Error("Không thể lấy danh sách đánh giá của người dùng.");
+    }
+  },
+
+  /**
+   * Lấy danh sách các lượt đánh giá của một nhà hàng.
+   * @param {number} resId - ID nhà hàng.
+   * @returns {Promise<Array<object>>} - Mảng các đối tượng đánh giá.
+   * @throws {BadRequestException} Nếu nhà hàng không tồn tại.
+   */
+  getRatingsByRestaurantId: async (resId) => {
+    const restaurant = await prisma.restaurants.findUnique({ where: { res_id: resId } });
+    if (!restaurant) {
+      throw new BadRequestException("Nhà hàng không tồn tại.");
+    }
+
+    try {
+      const ratings = await prisma.ratings.findMany({
+        where: { res_id: resId },
+        include: {
+          users: {
+            select: { user_id: true, full_name: true, email: true }
+          }
+        },
+      });
+      return ratings;
+    } catch (error) {
+      console.error("Lỗi trong RestaurantService.getRatingsByRestaurantId:", error);
+      throw new Error("Không thể lấy danh sách đánh giá của nhà hàng.");
+    }
+  }
+  
 };
 
 export default restaurantService;
