@@ -65,13 +65,9 @@ const restaurantService = {// Like nhà hàng // ===============================
 
   /**
    * Xóa một lượt like của nhà hàng.
-   * @param {number} userId - ID người dùng.
-   * @param {number} resId - ID nhà hàng.
-   * @returns {Promise<object>} - Đối tượng like vừa xóa.
-   * @throws {BadrequestException} Nếu lượt like không tồn tại.
    */
   unlikeRestaurant: async (req) => {
-    const { userId, resId } = req.body;
+    let  { userId, resId } = req.body;
 
     userId = parseInt(userId);
     resId = parseInt(resId);
@@ -79,8 +75,7 @@ const restaurantService = {// Like nhà hàng // ===============================
       if (!userId || !resId) {
         throw new BadRequestException("Thiếu user ID hoặc restaurant ID.");
       }
-
-      if (isNaN(parsedUserId) || isNaN(parsedResId)) {
+      if (isNaN(userId) || isNaN(resId)) {
         throw new BadRequestException("ID người dùng hoặc nhà hàng không hợp lệ.");
       }
 
@@ -116,17 +111,20 @@ const restaurantService = {// Like nhà hàng // ===============================
 
   /**
    * Lấy danh sách các lượt like của một người dùng.
-   * @param {number} userId - ID người dùng.
-   * @returns {Promise<Array<object>>} - Mảng các đối tượng like.
-   * @throws {BadrequestException} Nếu người dùng không tồn tại.
    */
-  getLikesByUserId: async (userId) => {
+  getLikesByUserId: async (req) => {
+
+     const userId = parseInt(req.params.userId);
+
+      if (isNaN(userId)) {
+        throw new BadRequestException("ID người dùng không hợp lệ.");
+      }
+
     const user = await prisma.users.findUnique({ where: { user_id: userId } });
     if (!user) {
       throw new BadrequestException("Người dùng không tồn tại.");
     }
 
-    try {
       const likes = await prisma.likes.findMany({
         where: { user_id: userId },
         include: {
@@ -136,10 +134,6 @@ const restaurantService = {// Like nhà hàng // ===============================
         },
       });
       return likes;
-    } catch (error) {
-      console.error("Lỗi trong RestaurantService.getLikesByUserId:", error);
-      throw new Error("Không thể lấy danh sách like của người dùng.");
-    }
   },
 
   /**

@@ -23,39 +23,19 @@ const restaurantsController = {
    * @param {object} res - Đối tượng Response từ Express.
    */
   unlikeRestaurant: async (req, res) => {
-    
       const deletedLike = await restaurantService.unlikeRestaurant(req);
        const resdata = responseSeccess(deletedLike, "Unlike nhà hàng thành công");
         res.status(resdata.statusCode).json(resdata);  
-     
-    
   },
 
   /**
    * Xử lý yêu cầu GET để lấy danh sách like theo user ID.
-   * @param {object} req - Đối tượng Request từ Express.
-   * @param {object} res - Đối tượng Response từ Express.
    */
   getLikesByUserId: async (req, res) => {
-    try {
-      const userId = parseInt(req.params.userId);
 
-      if (isNaN(userId)) {
-        throw new BadRequestException("ID người dùng không hợp lệ.");
-      }
-
-      const likes = await restaurantService.getLikesByUserId(userId);
-      res.status(200).json({
-        message: "Lấy danh sách like của người dùng thành công",
-        data: likes,
-      });
-    } catch (error) {
-      if (error instanceof BadRequestException) {
-        return res.status(error.statusCode).json({ message: error.message });
-      }
-      console.error("Lỗi trong RestaurantController.getLikesByUserId:", error);
-      res.status(500).json({ message: "Lỗi máy chủ nội bộ khi lấy danh sách like." });
-    }
+      const likes = await restaurantService.getLikesByUserId(req);
+    const resdata = responseSeccess(likes, "Lấy danh sách like của người dùng thành công");
+    res.status(resdata.statusCode).json(resdata);  
   },
 
   /**
