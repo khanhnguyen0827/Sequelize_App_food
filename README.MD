@@ -27,4 +27,16 @@ tượng đó
     * Tạo đơn hàng mới với nhiều món ăn.
     * Lấy danh sách các đơn hàng của một người dùng.
 
-
+API GET All Users:          http://localhost:9000/users
+API GET User by ID:         http://localhost:9000/users/:user_id
+--- Restaurant APIs ---
+POST Like:                  http://localhost:9000/restaurants/like
+POST Unlike:                http://localhost:9000/restaurants/unlike
+GET Likes by User:          http://localhost:9000/restaurants/likes/user/:userId
+GET Likes by Restaurant:    http://localhost:9000/restaurants/likes/restaurant/:resId
+POST Rate:                  http://localhost:9000/restaurants/rate
+GET Ratings by User:        http://localhost:9000/restaurants/rates/user/:userId
+GET Ratings by Restaurant:  http://localhost:9000/restaurants/rates/restaurant/:resId
+--- Order APIs ---
+POST Add Order:             http://localhost:9000/orders/add
+GET Orders by User:         http://localhost:9000/orders/user/:userId

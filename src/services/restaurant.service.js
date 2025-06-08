@@ -138,17 +138,20 @@ const restaurantService = {// Like nhà hàng // ===============================
 
   /**
    * Lấy danh sách các lượt like của một nhà hàng.
-   * @param {number} resId - ID nhà hàng.
-   * @returns {Promise<Array<object>>} - Mảng các đối tượng like.
-   * @throws {BadrequestException} Nếu nhà hàng không tồn tại.
    */
-  getLikesByRestaurantId: async (resId) => {
+  getLikesByRestaurantId: async (req) => {
+
+    const resId = parseInt(req.params.resId);
+
+      if (isNaN(resId)) {
+        throw new BadRequestException("ID nhà hàng không hợp lệ.");
+      }
     const restaurant = await prisma.restaurants.findUnique({ where: { res_id: resId } });
     if (!restaurant) {
       throw new BadrequestException("Nhà hàng không tồn tại.");
     }
 
-    try {
+   
       const likes = await prisma.likes.findMany({
         where: { res_id: resId },
         include: {
@@ -158,10 +161,7 @@ const restaurantService = {// Like nhà hàng // ===============================
         },
       });
       return likes;
-    } catch (error) {
-      console.error("Lỗi trong RestaurantService.getLikesByRestaurantId:", error);
-      throw new Error("Không thể lấy danh sách like của nhà hàng.");
-    }
+    
   },
 
   // =========================================================
@@ -170,13 +170,23 @@ const restaurantService = {// Like nhà hàng // ===============================
 
   /**
    * Thêm hoặc cập nhật một đánh giá cho nhà hàng.
-   * @param {number} userId - ID người dùng.
-   * @param {number} resId - ID nhà hàng.
-   * @param {number} amount - Điểm đánh giá (ví dụ: 1-5).
-   * @returns {Promise<object>} - Đối tượng đánh giá vừa tạo/cập nhật.
-   * @throws {BadrequestException} Nếu người dùng/nhà hàng không tồn tại, hoặc điểm đánh giá không hợp lệ.
    */
-  addRestaurantRating: async (userId, resId, amount) => {
+  addRestaurantRating: async (req) => {
+    let { userId, resId, amount } = req.body;
+
+      userId = parseInt(userId);
+      resId = parseInt(resId);
+      amount = parseInt(amount);
+
+      if (!userId || !resId || amount === undefined) {
+        throw new BadRequestException("Thiếu user ID, restaurant ID hoặc điểm đánh giá.");
+      }
+     
+
+      if (isNaN(userId) || isNaN(resId) || isNaN(amount)) {
+        throw new BadRequestException("ID người dùng, ID nhà hàng hoặc điểm đánh giá không hợp lệ.");
+      }
+
     // Kiểm tra sự tồn tại của người dùng và nhà hàng
     const user = await prisma.users.findUnique({ where: { user_id: userId } });
     const restaurant = await prisma.restaurants.findUnique({ where: { res_id: resId } });
@@ -187,13 +197,11 @@ const restaurantService = {// Like nhà hàng // ===============================
     if (!restaurant) {
       throw new BadrequestException("Nhà hàng không tồn tại.");
     }
-
     // Kiểm tra điểm đánh giá hợp lệ
     if (amount < 1 || amount > 5) { // Giả sử điểm đánh giá từ 1 đến 5
       throw new BadrequestException("Điểm đánh giá phải từ 1 đến 5.");
     }
-
-    try {
+   
       // Upsert: Nếu tồn tại thì update, không thì create
       const rating = await prisma.ratings.upsert({
         where: {
@@ -214,19 +222,20 @@ const restaurantService = {// Like nhà hàng // ===============================
         },
       });
       return rating;
-    } catch (error) {
-      console.error("Lỗi trong RestaurantService.addRestaurantRating:", error);
-      throw new Error("Không thể thêm hoặc cập nhật đánh giá.");
-    }
+    
   },
 
   /**
    * Lấy danh sách các lượt đánh giá của một người dùng.
-   * @param {number} userId - ID người dùng.
-   * @returns {Promise<Array<object>>} - Mảng các đối tượng đánh giá.
-   * @throws {BadrequestException} Nếu người dùng không tồn tại.
+
    */
-  getRatingsByUserId: async (userId) => {
+  getRatingsByUserId: async (req) => {
+    const userId = parseInt(req.params.userId);
+
+      if (isNaN(userId)) {
+        throw new BadRequestException("ID người dùng không hợp lệ.");
+      }
+
     const user = await prisma.users.findUnique({ where: { user_id: userId } });
     if (!user) {
       throw new BadrequestException("Người dùng không tồn tại.");
@@ -254,7 +263,12 @@ const restaurantService = {// Like nhà hàng // ===============================
    * @returns {Promise<Array<object>>} - Mảng các đối tượng đánh giá.
    * @throws {BadrequestException} Nếu nhà hàng không tồn tại.
    */
-  getRatingsByRestaurantId: async (resId) => {
+  getRatingsByRestaurantId: async (req) => {
+    const resId = parseInt(req.params.resId);
+
+      if (isNaN(resId)) {
+        throw new BadRequestException("ID nhà hàng không hợp lệ.");
+      }
     const restaurant = await prisma.restaurants.findUnique({ where: { res_id: resId } });
     if (!restaurant) {
       throw new BadrequestException("Nhà hàng không tồn tại.");

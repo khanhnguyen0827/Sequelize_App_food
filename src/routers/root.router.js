@@ -6,11 +6,11 @@ import orderRouter from "./order.router";
 const rootRouter = express.Router();
 
 //api lấy danh sách người dùng
-rootRouter.use('/user', usersRouter);
+rootRouter.use('/users', usersRouter);
 //api lấy danh sách nhà hàng
-rootRouter.use('/restaurant', restaurantsRouter);
+rootRouter.use('/restaurants', restaurantsRouter);
 
-rootRouter.use('/order', orderRouter);
+rootRouter.use('/orders', orderRouter);
 
 
 /*
